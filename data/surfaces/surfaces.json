@@ -1,0 +1,15 @@
+{
+  "source": "Bounce: Penner (2002), 'The run of a golf ball', Can. J. Phys. 80, 931 (restitution eq. 5, effective contact angle eq. 8, friction 0.4), as implemented in 3-D by dimple. Fairway rolling resistance: dimple's FAIRWAY preset (stimp 5.2 ft); green: set from its Stimpmeter reading (Holmes 1986; Penner 2002 'The physics of putting'). Rough, bunker, path, native and the lie effects are gameplay estimates.",
+  "surfaces": [
+    {"id": "fairway", "name": "Fairway", "restitution": "penner2002", "mu_slide": 0.40, "compliance": 1.0, "mu_roll": 0.12, "roll_law": "quadratic", "roll_v_ref": 2.5, "color": "#3f8a3a", "source": "Penner 2002 bounce; dimple FAIRWAY roll"},
+    {"id": "tee", "name": "Tee", "restitution": "penner2002", "mu_slide": 0.40, "compliance": 1.0, "mu_roll": 0.12, "roll_law": "quadratic", "roll_v_ref": 2.5, "color": "#4c9a45"},
+    {"id": "green", "name": "Green", "restitution": "penner2002", "mu_slide": 0.40, "compliance": 1.0, "stimp_ft": 10.0, "roll_law": "quadratic", "roll_v_ref": 2.5, "puttable": true, "color": "#5cbf55", "source": "Penner 2002 bounce; rolling resistance from a Stimpmeter reading of 10 ft"},
+    {"id": "fringe", "name": "Fringe", "restitution": "penner2002", "mu_slide": 0.40, "compliance": 1.0, "mu_roll": 0.09, "puttable": true, "color": "#4aa846", "source": "estimated: between green and fairway"},
+    {"id": "rough", "name": "Rough", "restitution": "penner2002", "restitution_scale": 0.75, "mu_slide": 0.55, "compliance": 1.3, "mu_roll": 0.30, "roll_v_ref": 2.0, "lie_speed": 0.95, "lie_friction": 0.15, "lie_dispersion": 1.4, "color": "#2f6e2c", "source": "estimated (gameplay)"},
+    {"id": "deep_rough", "name": "Deep rough", "restitution": "penner2002", "restitution_scale": 0.6, "mu_slide": 0.7, "compliance": 1.6, "mu_roll": 0.6, "roll_v_ref": 2.0, "lie_speed": 0.80, "lie_friction": 0.1, "lie_dispersion": 1.9, "color": "#285a26", "source": "estimated (gameplay)"},
+    {"id": "bunker", "name": "Bunker", "restitution": 0.12, "mu_slide": 0.8, "compliance": 2.0, "mu_roll": 1.2, "roll_law": "constant", "sand": true, "lie_speed": 0.85, "lie_friction": 0.4, "lie_dispersion": 1.5, "color": "#e3d3a2", "source": "estimated (gameplay)"},
+    {"id": "path", "name": "Cart path", "restitution": 0.65, "mu_slide": 0.35, "compliance": 0.0, "mu_roll": 0.03, "roll_law": "constant", "color": "#9a9a94", "source": "estimated; cf. Cross 2010, golf ball on granite e_y 0.87"},
+    {"id": "native", "name": "Native area", "restitution": "penner2002", "restitution_scale": 0.6, "mu_slide": 0.55, "compliance": 1.3, "mu_roll": 0.45, "roll_v_ref": 2.0, "lie_speed": 0.9, "lie_friction": 0.35, "lie_dispersion": 1.6, "color": "#6b6a3a", "source": "estimated (gameplay)"},
+    {"id": "water", "name": "Water", "water": true, "color": "#2b6c8f", "source": "the ball is lost; it may skip first (estimated after Rosellini et al. 2005)"}
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "source": "TrackMan PGA Tour averages (the long-published table: TrackMan 'PGA Tour averages' support sheet; reproduced by e.g. GolfMagic). The driver, 9-iron and pitching-wedge rows were checked against a quotation of the primary sheet; other cells come from secondary reproductions and should be re-checked against the TrackMan PDF.",
+  "units": "club and ball speed mph; angles degrees; spin rpm; height and carry yards",
+  "conditions": "TrackMan normalises its averages to standard conditions; this table is compared at sea level, 25 C, 50 % humidity, no wind (dimple's choice for the 2024 table).",
+  "clubs": [
+    {"club": "Driver", "club_speed": 113, "attack": -1.3, "ball_speed": 167, "smash": 1.48, "launch": 10.9, "spin": 2686, "height": 32, "land": 38, "carry": 275, "verified": true},
+    {"club": "3-wood", "club_speed": 107, "attack": -2.9, "ball_speed": 158, "smash": 1.48, "launch": 9.2, "spin": 3655, "height": 30, "land": 43, "carry": 243, "verified": false},
+    {"club": "5-wood", "club_speed": 103, "attack": -3.3, "ball_speed": 152, "smash": 1.47, "launch": 9.4, "spin": 4350, "height": 31, "land": 47, "carry": 230, "verified": false},
+    {"club": "Hybrid", "club_speed": 100, "attack": -3.5, "ball_speed": 146, "smash": 1.46, "launch": 10.2, "spin": 4437, "height": 29, "land": 47, "carry": 225, "verified": false},
+    {"club": "3-iron", "club_speed": 98, "attack": -3.1, "ball_speed": 142, "smash": 1.45, "launch": 10.4, "spin": 4630, "height": 27, "land": 46, "carry": 212, "verified": false},
+    {"club": "4-iron", "club_speed": 96, "attack": -3.4, "ball_speed": 137, "smash": 1.43, "launch": 11.0, "spin": 4836, "height": 28, "land": 48, "carry": 203, "verified": false},
+    {"club": "5-iron", "club_speed": 94, "attack": -3.7, "ball_speed": 132, "smash": 1.41, "launch": 12.1, "spin": 5361, "height": 31, "land": 49, "carry": 194, "verified": false},
+    {"club": "6-iron", "club_speed": 92, "attack": -4.1, "ball_speed": 127, "smash": 1.38, "launch": 14.1, "spin": 6231, "height": 30, "land": 50, "carry": 183, "verified": false},
+    {"club": "7-iron", "club_speed": 90, "attack": -4.3, "ball_speed": 120, "smash": 1.33, "launch": 16.3, "spin": 7097, "height": 32, "land": 50, "carry": 172, "verified": false},
+    {"club": "8-iron", "club_speed": 87, "attack": -4.5, "ball_speed": 115, "smash": 1.32, "launch": 18.1, "spin": 7998, "height": 31, "land": 50, "carry": 160, "verified": false},
+    {"club": "9-iron", "club_speed": 85, "attack": -4.7, "ball_speed": 109, "smash": 1.28, "launch": 20.4, "spin": 8647, "height": 30, "land": 51, "carry": 148, "verified": true},
+    {"club": "PW", "club_speed": 83, "attack": -5.0, "ball_speed": 102, "smash": 1.23, "launch": 24.2, "spin": 9304, "height": 29, "land": 52, "carry": 136, "verified": true}
+  ]
+}

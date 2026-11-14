@@ -1,0 +1,38 @@
+Golf Dynamics
+Copyright (c) 2026 ZRosserMcIntosh. MIT License (LICENSE).
+
+This project includes work derived from the following, under their licences:
+
+- dimple, golf ball-flight physics library (https://github.com/divotmaker/dimple)
+  Copyright 2026 Eric Thill. Dual-licensed MIT OR Apache-2.0; used here under MIT.
+  The "sigmoid" drag and lift model and its TOUR constants (src/ball.cpp,
+  data/balls/balls.json), and the three-dimensional form of Penner's (2002)
+  bounce, the slide-to-roll transition, the quadratic roll law and the
+  Stimpmeter conversion (src/shot.cpp, src/surface.cpp) follow dimple's
+  src/aero.rs and src/ground.rs.
+
+  MIT License
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+- Aviation Dynamics (https://github.com/ZRosserMcIntosh/Aviation-Dynamics),
+  same author, MIT: the JSON parser (src/json.cpp) and the test harness.
+
+Data:
+- data/courses/varzea.json: ground heights from SRTM 1 arc-second (NASA/USGS,
+  public domain), processed by Aviation Dynamics' tools/terrain.
+- data/validation/trackman_pga_tour.json: TrackMan's published PGA Tour
+  averages (facts, cited in the file).

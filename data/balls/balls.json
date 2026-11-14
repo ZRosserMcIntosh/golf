@@ -1,0 +1,12 @@
+{
+  "balls": [
+    {"id": "tour", "name": "Tour ball", "mass_g": 45.93, "diameter_mm": 42.67, "inertia_factor": 0.4,
+     "model": "sigmoid", "cd_sub": 0.295, "cd_super": 0.186, "cd_spin": 0.85, "sr_sat": 0.25, "cl_sub": 0.203, "cl_super": 0.324, "sr_scale": 0.115, "re_crit": 69600, "re_width": 106,
+     "spin_decay": "exponential", "decay_rate": 0.04,
+     "source": "Coefficient form and constants: dimple 'TOUR' (github.com/divotmaker/dimple, MIT/Apache-2.0), calibrated by its author to the TrackMan 2024 PGA Tour averages and a 1,178-shot set; spin decay 4 %/s (dimple, openflight). Mass and diameter: Rules of Golf limits."},
+    {"id": "ferguson2022", "name": "Launch-monitor fit (Ferguson et al. 2022)", "mass_g": 45.93, "diameter_mm": 42.67, "inertia_factor": 0.4,
+     "model": "quadratic", "cd": [0.1304, 0.9287, -0.8259], "cl": [0.0504, 1.2031, -1.1490], "s_max": 0.75,
+     "spin_decay": "exponential", "decay_rate": 0.04,
+     "source": "Ferguson, McNally & McPhee (2022), ISEA, doi:10.5703/1288284317493: Cd and Cl quadratic in the spin parameter, held above S = 0.75."}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "source": "Speed factors relative to the TrackMan PGA Tour averages: TrackMan's published amateur averages put a scratch golfer's driver near 105 mph, a 14-handicap near 94 mph and a 25-handicap near 85 mph (TrackMan 'Amateur averages', estimated from their charts). Dispersions (one standard deviation) are gameplay estimates chosen so that tour pros hit about 60-70 % of greens from 150 yards and higher handicaps progressively fewer.",
+  "golfers": [
+    {"id": "tour", "name": "Tour pro", "speed_factor": 1.00, "face_sd_deg": 1.6, "path_sd_deg": 1.8, "strike_sd_mm": 6, "speed_sd": 0.015, "loft_sd_deg": 1.0, "putt_speed_sd": 0.035, "putt_aim_sd_deg": 0.45, "handicap": 0},
+    {"id": "scratch", "name": "Scratch", "speed_factor": 0.93, "face_sd_deg": 2.2, "path_sd_deg": 2.4, "strike_sd_mm": 8, "speed_sd": 0.022, "loft_sd_deg": 1.4, "putt_speed_sd": 0.05, "putt_aim_sd_deg": 0.65, "handicap": 0},
+    {"id": "mid", "name": "Mid handicap", "speed_factor": 0.83, "face_sd_deg": 2.8, "path_sd_deg": 3.0, "strike_sd_mm": 10, "speed_sd": 0.035, "loft_sd_deg": 2.0, "putt_speed_sd": 0.07, "putt_aim_sd_deg": 0.9, "handicap": 14},
+    {"id": "high", "name": "High handicap", "speed_factor": 0.75, "face_sd_deg": 4.0, "path_sd_deg": 4.2, "strike_sd_mm": 13, "speed_sd": 0.05, "loft_sd_deg": 2.8, "putt_speed_sd": 0.095, "putt_aim_sd_deg": 1.2, "handicap": 25}
+  ]
+}
