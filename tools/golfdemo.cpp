@@ -3,6 +3,7 @@
 //
 //   golfdemo validate          flight and impact against the TrackMan averages
 //   golfdemo round [seed]      two computer golfers play the Várzea course
+//   golfdemo replay <file>     replay a saved round (from web/smoke_test.mjs), print its state
 #include <cstdio>
 #include <cstring>
 #include <fstream>
@@ -81,7 +82,26 @@ static int playRound(std::uint64_t seed) {
     return 0;
 }
 
+// Replay a saved round (web/smoke_test.mjs writes one) and print its state, to
+// check that the WebAssembly and native builds compute the same round.
+static int replay(const char* file) {
+    Course c;
+    const auto j = json::parse(readFile(std::string(GOLF_DATA_DIR) + "/courses/varzea.json"));
+    if (!j.ok() || !loadCourse(j.value, c).empty()) return 1;
+    buildCourse(c);
+    const auto f = json::parse(readFile(file));
+    if (!f.ok()) return 1;
+    const json::Value* saved = f.value.find("saved");
+    MatchConfig cfg;
+    if (!saved || !parseMatchConfig(*saved->find("config"), cfg).empty()) return 1;
+    Match m(c, cfg);
+    for (const auto& s : saved->find("shots")->items()) m.play(parseSwing(s));
+    std::printf("%s\n", m.stateJson().c_str());
+    return 0;
+}
+
 int main(int argc, char** argv) {
+    if (argc > 2 && !std::strcmp(argv[1], "replay")) return replay(argv[2]);
     if (argc > 1 && !std::strcmp(argv[1], "validate")) return validate();
     if (argc > 1 && !std::strcmp(argv[1], "round")) return playRound(argc > 2 ? std::strtoull(argv[2], nullptr, 10) : 1);
     std::printf("usage: golfdemo validate | round [seed]\n");
