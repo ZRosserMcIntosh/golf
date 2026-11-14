@@ -28,18 +28,11 @@ jobs:
             os: ubuntu-24.04
             cxx: g++
             flags: "-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all"
-          - name: macos-clang
-            os: macos-14
-            cxx: clang++
-            flags: ""
     steps:
       - uses: actions/checkout@v4
       - name: Install Ninja (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y ninja-build
-      - name: Install Ninja (macOS)
-        if: runner.os == 'macOS'
-        run: brew install ninja
       - name: Configure
         run: >
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo

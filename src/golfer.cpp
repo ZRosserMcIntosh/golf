@@ -79,7 +79,10 @@ Delivery makeDelivery(const SwingInput& in, const Club& club, const GolferProfil
     d.dynamicLoftDeg = club.tourDynamicLoftDeg + in.loftDeg + 3.0 * (1.0 - std::min(in.power, 1.0)) +
                        g.loftSdDeg * scatter * nLoft;
     d.pathDeg = in.pathDeg + g.pathSdDeg * scatter * nPath;
-    d.faceAngleDeg = in.faceDeg + g.faceSdDeg * scatter * nFace;
+    // A golfer's face and path errors go together (a swing that comes over the
+    // top tends to have the face pointing left too): correlation 0.6, so the
+    // face-to-path spread, which curves the ball, is smaller than either.
+    d.faceAngleDeg = in.faceDeg + g.faceSdDeg * scatter * (0.6 * nPath + 0.8 * nFace);
     d.strikeToeM = in.strikeToeMm / 1000 + g.strikeSdM * scatter * nToe;
     d.strikeUpM = in.strikeUpMm / 1000 + 0.7 * g.strikeSdM * scatter * nUp;
     d.frictionScale = s ? s->lieFriction : 1.0;
