@@ -25,15 +25,67 @@ double Blob::sdf(double px, double pz) const {
     return (rho - 1.0) * std::min(rx, rz);
 }
 
+void Polygon::finish() {
+    bx0 = bz0 = 1e18;
+    bx1 = bz1 = -1e18;
+    for (const auto& p : pts) {
+        bx0 = std::min(bx0, p.x);
+        bx1 = std::max(bx1, p.x);
+        bz0 = std::min(bz0, p.z);
+        bz1 = std::max(bz1, p.z);
+    }
+}
+
+double Polygon::sdf(double x, double z) const {
+    if (pts.size() < 3) return 1e9;
+    // Far from the box the distance to the box is close enough (a lower bound).
+    const double ox = std::max({bx0 - x, 0.0, x - bx1}), oz = std::max({bz0 - z, 0.0, z - bz1});
+    const double boxD = std::sqrt(ox * ox + oz * oz);
+    if (boxD > 40) return boxD;
+    double d2 = 1e300;
+    bool in = false;
+    for (size_t i = 0, j = pts.size() - 1; i < pts.size(); j = i++) {
+        const Vec3& a = pts[i];
+        const Vec3& b = pts[j];
+        const double vx = b.x - a.x, vz = b.z - a.z, l2 = vx * vx + vz * vz;
+        const double t = l2 > 0 ? clamp(((x - a.x) * vx + (z - a.z) * vz) / l2, 0.0, 1.0) : 0.0;
+        const double dx = x - (a.x + t * vx), dz = z - (a.z + t * vz);
+        d2 = std::min(d2, dx * dx + dz * dz);
+        if ((a.z > z) != (b.z > z) && x < (b.x - a.x) * (z - a.z) / (b.z - a.z) + a.x) in = !in;
+    }
+    const double d = std::sqrt(d2);
+    return in ? -d : d;
+}
+
+double Polygon::area() const {
+    double a = 0;
+    for (size_t i = 0, j = pts.size() - 1; i < pts.size(); j = i++) a += pts[j].x * pts[i].z - pts[i].x * pts[j].z;
+    return std::abs(a) / 2;
+}
+
+Vec3 Polygon::centroid() const {
+    double a = 0, cx = 0, cz = 0;
+    for (size_t i = 0, j = pts.size() - 1; i < pts.size(); j = i++) {
+        const double f = pts[j].x * pts[i].z - pts[i].x * pts[j].z;
+        a += f;
+        cx += (pts[j].x + pts[i].x) * f;
+        cz += (pts[j].z + pts[i].z) * f;
+    }
+    if (std::abs(a) < 1e-9) return pts.empty() ? Vec3{} : pts[0];
+    return {cx / (3 * a), 0, cz / (3 * a)};
+}
+
 double Bunker::sdf(double x, double z) const {
     double d = 1e9;
     for (const auto& b : lobes) d = std::min(d, b.sdf(x, z));
+    for (const auto& p : polys) d = std::min(d, p.sdf(x, z));
     return d;
 }
 
 double Lake::sdf(double x, double z) const {
     double d = 1e9;
     for (const auto& b : lobes) d = std::min(d, b.sdf(x, z));
+    for (const auto& p : polys) d = std::min(d, p.sdf(x, z));
     return d;
 }
 
@@ -130,12 +182,28 @@ Blob blob(const json::Value& v) {
     b.p = num(v, "p", 2.2);
     return b;
 }
+Polygon polygon(const json::Value* arr) {
+    Polygon p;
+    p.pts = points(arr);
+    if (p.pts.size() > 1 && p.pts.front() == p.pts.back()) p.pts.pop_back();
+    p.finish();
+    return p;
+}
+std::vector<Polygon> polygons(const json::Value* arr) {
+    std::vector<Polygon> out;
+    if (arr && arr->isArray())
+        for (const auto& v : arr->items()) {
+            Polygon p = polygon(&v);
+            if (!p.empty()) out.push_back(std::move(p));
+        }
+    return out;
+}
 std::vector<Blob> lobes(const json::Value& v) {
     std::vector<Blob> out;
     const json::Value* l = v.find("lobes");
     if (l && l->isArray())
         for (const auto& b : l->items()) out.push_back(blob(b));
-    else
+    else if (!v.find("polygon") && !v.find("polygons"))
         out.push_back(blob(v));
     return out;
 }
@@ -144,6 +212,7 @@ std::vector<Blob> lobes(const json::Value& v) {
 
 double HoleDef::fairwaySdf(double x, double z) const {
     double d = 1e9;
+    for (const auto& p : fairwayPolys) d = std::min(d, p.sdf(x, z));
     for (size_t i = 1; i < fairway.size(); ++i) {
         const auto& a = fairway[i - 1];
         const auto& b = fairway[i];
@@ -321,8 +390,20 @@ std::string loadCourse(const json::Value& root, Course& c) {
             for (const auto& p : f->items())
                 if (p.isArray() && p.items().size() >= 3)
                     h.fairway.push_back({p.items()[0].asNumber(), p.items()[1].asNumber(), p.items()[2].asNumber()});
+        h.fairwayPolys = polygons(hv.find("fairway_polygons"));
         if (const json::Value* g = hv.find("green")) {
             h.green.shape = blob(*g);
+            if (const json::Value* pv = g->find("polygon")) {
+                h.green.outline = polygon(pv);
+                if (!h.green.outline.empty()) {
+                    const Vec3 c0 = h.green.outline.centroid();
+                    h.green.shape.x = c0.x;
+                    h.green.shape.z = c0.z;
+                    h.green.shape.rx = (h.green.outline.bx1 - h.green.outline.bx0) / 2;
+                    h.green.shape.rz = (h.green.outline.bz1 - h.green.outline.bz0) / 2;
+                    h.green.shape.rot = 0;
+                }
+            }
             h.green.raise = num(*g, "raise", 0.3);
             h.green.tiltX = num(*g, "tilt_x", 0);
             h.green.tiltZ = num(*g, "tilt_z", 0);
@@ -342,6 +423,8 @@ std::string loadCourse(const json::Value& root, Course& c) {
             for (const auto& v : b->items()) {
                 Bunker bk;
                 bk.lobes = lobes(v);
+                if (const json::Value* pv = v.find("polygon")) { Polygon pg = polygon(pv); if (!pg.empty()) bk.polys.push_back(pg); }
+                for (auto& pg : polygons(v.find("polygons"))) bk.polys.push_back(pg);
                 bk.depth = num(v, "depth", 0.8);
                 h.bunkers.push_back(bk);
             }
@@ -349,6 +432,8 @@ std::string loadCourse(const json::Value& root, Course& c) {
             for (const auto& v : b->items()) {
                 Lake lk;
                 lk.lobes = lobes(v);
+                if (const json::Value* pv = v.find("polygon")) { Polygon pg = polygon(pv); if (!pg.empty()) lk.polys.push_back(pg); }
+                for (auto& pg : polygons(v.find("polygons"))) lk.polys.push_back(pg);
                 lk.level = num(v, "level", 0);
                 lk.red = str(v, "colour", "red") != "yellow";
                 h.lakes.push_back(lk);
@@ -392,16 +477,25 @@ void buildCourse(Course& c) {
         for (const auto& p : h.line) grow(p.x, p.z, 0);
         for (const auto& t : h.tees) grow(t.pos.x, t.pos.z, t.halfL + t.halfW);
         grow(h.green.shape.x, h.green.shape.z, std::max(h.green.shape.rx, h.green.shape.rz));
-        for (const auto& b : h.bunkers)
+        auto growPoly = [&](const Polygon& p) { grow(p.bx0, p.bz0, 0); grow(p.bx1, p.bz1, 0); };
+        for (const auto& b : h.bunkers) {
             for (const auto& l : b.lobes) grow(l.x, l.z, std::max(l.rx, l.rz));
-        for (const auto& lk : h.lakes)
+            for (const auto& p : b.polys) growPoly(p);
+        }
+        for (const auto& lk : h.lakes) {
             for (const auto& l : lk.lobes) grow(l.x, l.z, std::max(l.rx, l.rz));
+            for (const auto& p : lk.polys) growPoly(p);
+        }
+        for (const auto& p : h.fairwayPolys) growPoly(p);
+        if (!h.green.outline.empty()) growPoly(h.green.outline);
         for (auto& t : h.tees) t.pos.y = c.baseHeight(t.pos.x, t.pos.z) + t.raise;
         h.green.level = c.baseHeight(h.green.shape.x, h.green.shape.z) + h.green.raise;
         for (auto& l : h.lakes) {
             if (l.level == 0) {
                 double lo = 1e9;
                 for (const auto& b : l.lobes) lo = std::min(lo, c.baseHeight(b.x, b.z));
+                for (const auto& p : l.polys)
+                    for (const auto& q : p.pts) lo = std::min(lo, c.baseHeight(q.x, q.z));
                 l.level = lo - 1.0;
             }
         }
@@ -427,7 +521,7 @@ void buildCourse(Course& c) {
                     const double d = rectSdf(t, x, z);
                     if (d < 5) h = lerp(h, t.pos.y, 1.0 - smoothstep(0.0, 5.0, d));
                 }
-                const double dg = hole.green.shape.sdf(x, z);
+                const double dg = hole.green.sdf(x, z);
                 if (dg < 7) {
                     const double target = hole.green.level + hole.green.contour(x, z);
                     h = lerp(h, target, 1.0 - smoothstep(0.0, 7.0, dg));
@@ -468,8 +562,8 @@ void buildCourse(Course& c) {
                 if (!hole.near(x, z, 70)) continue;
                 const double cd = hole.corridorDistance(x, z);
                 // Rough: within the corridor; deep rough beyond.
-                const double fsdf = hole.fairway.empty() ? 1e9 : hole.fairwaySdf(x, z);
-                const double dg = hole.green.shape.sdf(x, z);
+                const double fsdf = !hole.hasFairway() ? 1e9 : hole.fairwaySdf(x, z);
+                const double dg = hole.green.sdf(x, z);
                 double teeD = 1e9;
                 for (const auto& t : hole.tees) teeD = std::min(teeD, rectSdf(t, x, z));
                 const double play = std::min({fsdf - hole.roughWidth, dg - 10.0, teeD - 8.0, cd - 16.0});
@@ -506,7 +600,7 @@ void buildCourse(Course& c) {
         for (auto& p : h.pins) {
             auto slope = [&](double x, double z) {
                 const GroundSample gs = c.terrain.sample(x, z);
-                return gs.surface == c.idGreen && h.green.shape.sdf(x, z) < -1.5 ? std::sqrt(1.0 / (gs.normal.y * gs.normal.y) - 1.0) : 1e9;
+                return gs.surface == c.idGreen && h.green.sdf(x, z) < -1.5 ? std::sqrt(1.0 / (gs.normal.y * gs.normal.y) - 1.0) : 1e9;
             };
             double best = slope(p.x, p.z);
             if (best > 0.025) {
@@ -544,8 +638,8 @@ void buildCourse(Course& c) {
             for (const auto& hole : c.holes) {
                 if (!hole.near(tx, tz, 60)) continue;
                 if (hole.corridorDistance(tx, tz) < 26 + c.treeDef.corridorExtra) { ok = false; break; }
-                if (!hole.fairway.empty() && hole.fairwaySdf(tx, tz) < hole.roughWidth + c.treeDef.clearance) { ok = false; break; }
-                if (hole.green.shape.sdf(tx, tz) < 14) { ok = false; break; }
+                if (hole.hasFairway() && hole.fairwaySdf(tx, tz) < hole.roughWidth + c.treeDef.clearance) { ok = false; break; }
+                if (hole.green.sdf(tx, tz) < 14) { ok = false; break; }
                 for (const auto& t : hole.tees)
                     if (rectSdf(t, tx, tz) < 8) { ok = false; break; }
                 for (const auto& l : hole.lakes)

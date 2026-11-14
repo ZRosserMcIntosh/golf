@@ -106,9 +106,19 @@ std::string courseInfo(const Course& c) {
                      num(lobes[k].rz) + "," + num(lobes[k].rot) + "]";
             return a + "]";
         };
+        auto polysJson = [&](const std::vector<Polygon>& ps) {
+            std::string a = "[";
+            for (size_t k = 0; k < ps.size(); ++k) {
+                a += k ? ",[" : "[";
+                for (size_t q = 0; q < ps[k].pts.size(); ++q) a += (q ? "," : "") + std::string("[") + num(ps[k].pts[q].x) + "," + num(ps[k].pts[q].z) + "]";
+                a += "]";
+            }
+            return a + "]";
+        };
         o += ",\"lakes\":[";
         for (size_t l = 0; l < d.lakes.size(); ++l)
-            o += (l ? "," : "") + std::string("{\"level\":") + num(d.lakes[l].level) + ",\"lobes\":" + lobesJson(d.lakes[l].lobes) + "}";
+            o += (l ? "," : "") + std::string("{\"level\":") + num(d.lakes[l].level) + ",\"lobes\":" + lobesJson(d.lakes[l].lobes) +
+                 ",\"polygons\":" + polysJson(d.lakes[l].polys) + "}";
         o += "],\"bunkers\":[";
         for (size_t b = 0; b < d.bunkers.size(); ++b) o += (b ? "," : "") + lobesJson(d.bunkers[b].lobes);
         double len = 0;

@@ -31,6 +31,17 @@ struct Blob {  // a rotated super-ellipse
     double sdf(double px, double pz) const;
 };
 
+// A simple polygon (an outline from a map), with its exact signed distance.
+struct Polygon {
+    std::vector<Vec3> pts;  // x, z (y unused), either winding, not closed
+    double bx0 = 0, bz0 = 0, bx1 = 0, bz1 = 0;
+    void finish();          // the bounding box
+    bool empty() const { return pts.size() < 3; }
+    double sdf(double x, double z) const;  // negative inside
+    double area() const;
+    Vec3 centroid() const;
+};
+
 struct TeeBox {
     std::string name = "white";
     Vec3 pos;           // centre of the tee box (pos.y filled by the build)
@@ -40,7 +51,9 @@ struct TeeBox {
 };
 
 struct GreenDef {
-    Blob shape;
+    Blob shape;              // or, when `outline` is set, its centroid and half-extents
+    Polygon outline;
+    double sdf(double x, double z) const { return outline.empty() ? shape.sdf(x, z) : outline.sdf(x, z); }
     double raise = 0.3;      // above the surrounding ground at its centre
     double tiltX = 0, tiltZ = 0;  // grade (dh/dx, dh/dz) across the green
     struct Bump { double x, z, r, h; };
@@ -53,12 +66,14 @@ struct GreenDef {
 
 struct Bunker {
     std::vector<Blob> lobes;
+    std::vector<Polygon> polys;
     double depth = 0.8;
     double sdf(double x, double z) const;
 };
 
 struct Lake {
     std::vector<Blob> lobes;
+    std::vector<Polygon> polys;
     double level = 0;      // water surface height; 0: set by the build from the ground
     bool red = true;       // red penalty area (lateral relief) or yellow
     double sdf(double x, double z) const;
@@ -72,6 +87,8 @@ struct HoleDef {
     std::vector<Vec3> line;  // line of play, tee to green (y unused)
     struct FairwayPoint { double x, z, halfWidth; };
     std::vector<FairwayPoint> fairway;  // empty for a par 3
+    std::vector<Polygon> fairwayPolys;  // mapped fairway outlines
+    bool hasFairway() const { return !fairway.empty() || !fairwayPolys.empty(); }
     GreenDef green;
     std::vector<Bunker> bunkers;
     std::vector<Lake> lakes;
