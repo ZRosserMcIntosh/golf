@@ -99,8 +99,18 @@ std::string courseInfo(const Course& c) {
         for (size_t p = 0; p < d.line.size(); ++p) o += (p ? "," : "") + std::string("[") + num(d.line[p].x) + "," + num(d.line[p].z) + "]";
         o += "],\"green\":{\"x\":" + num(d.green.shape.x) + ",\"z\":" + num(d.green.shape.z) + ",\"rx\":" + num(d.green.shape.rx) +
              ",\"rz\":" + num(d.green.shape.rz) + ",\"rot\":" + num(d.green.shape.rot) + ",\"level\":" + num(d.green.level) + "}";
+        auto lobesJson = [&](const std::vector<Blob>& lobes) {
+            std::string a = "[";
+            for (size_t k = 0; k < lobes.size(); ++k)
+                a += (k ? "," : "") + std::string("[") + num(lobes[k].x) + "," + num(lobes[k].z) + "," + num(lobes[k].rx) + "," +
+                     num(lobes[k].rz) + "," + num(lobes[k].rot) + "]";
+            return a + "]";
+        };
         o += ",\"lakes\":[";
-        for (size_t l = 0; l < d.lakes.size(); ++l) o += (l ? "," : "") + std::string("{\"level\":") + num(d.lakes[l].level) + "}";
+        for (size_t l = 0; l < d.lakes.size(); ++l)
+            o += (l ? "," : "") + std::string("{\"level\":") + num(d.lakes[l].level) + ",\"lobes\":" + lobesJson(d.lakes[l].lobes) + "}";
+        o += "],\"bunkers\":[";
+        for (size_t b = 0; b < d.bunkers.size(); ++b) o += (b ? "," : "") + lobesJson(d.bunkers[b].lobes);
         double len = 0;
         for (size_t p = 1; p < d.line.size(); ++p) len += std::hypot(d.line[p].x - d.line[p - 1].x, d.line[p].z - d.line[p - 1].z);
         o += "],\"length\":" + num(len) + "}";

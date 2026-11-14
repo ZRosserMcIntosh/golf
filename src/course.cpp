@@ -164,7 +164,10 @@ double Course::baseHeight(double x, double z) const {
     const TerrainDef& t = terrainDef;
     double h = t.base + t.gradeX * x + t.gradeZ * z;
     if (!t.grid.h.empty()) h += t.grid.sample(x, z);
-    if (t.noiseAmp > 0) h += t.noiseAmp * fbm(x / t.noiseScale, z / t.noiseScale, t.seed);
+    // The course's own undulation fades out toward its edges, so it meets the
+    // ground around it (the host world's) without a step.
+    const double edge = std::min({x - x0, x1 - x, z - z0, z1 - z});
+    if (t.noiseAmp > 0) h += t.noiseAmp * smoothstep(0.0, 60.0, edge) * fbm(x / t.noiseScale, z / t.noiseScale, t.seed);
     for (const auto& m : t.mounds) {
         const double d2 = (x - m.x) * (x - m.x) + (z - m.z) * (z - m.z);
         h += m.h * std::exp(-d2 / (m.r * m.r));
@@ -496,9 +499,31 @@ void buildCourse(Course& c) {
     }
 
     c.treeIndex = TreeIndex{};
-    // Pins sit on the green.
+    // Pins sit on the green, where it is gentle: a greenkeeper cuts the hole
+    // where the slope is under about 3 % (the usual guidance for green speeds of
+    // 10-11 ft), so a pin on a steeper spot moves to the gentlest within 4 m.
     for (auto& h : c.holes)
-        for (auto& p : h.pins) p.y = c.terrain.height(p.x, p.z);
+        for (auto& p : h.pins) {
+            auto slope = [&](double x, double z) {
+                const GroundSample gs = c.terrain.sample(x, z);
+                return gs.surface == c.idGreen && h.green.shape.sdf(x, z) < -1.5 ? std::sqrt(1.0 / (gs.normal.y * gs.normal.y) - 1.0) : 1e9;
+            };
+            double best = slope(p.x, p.z);
+            if (best > 0.025) {
+                const double px = p.x, pz = p.z;
+                for (double r = 0.5; r <= 4.0; r += 0.5)
+                    for (int k = 0; k < 16; ++k) {
+                        const double x = px + r * std::cos(k * kPi / 8), z = pz + r * std::sin(k * kPi / 8);
+                        const double sl = slope(x, z);
+                        if (sl < best - 1e-9) {
+                            best = sl;
+                            p.x = x;
+                            p.z = z;
+                        }
+                    }
+            }
+            p.y = c.terrain.height(p.x, p.z);
+        }
 
     // Trees: a jittered grid over the wooded ground, thinned by a clumping
     // noise, kept clear of every played surface.
@@ -537,7 +562,7 @@ void buildCourse(Course& c) {
             t.baseY = c.terrain.height(tx, tz);
             // São Paulo species mix (rendering kinds): 0 sibipiruna (broadleaf),
             // 1 ipê-amarelo, 2 ipê-roxo, 3 jerivá palm, 4 eucalyptus, 5 araucaria.
-            t.kind = kindRoll < 40 ? 0 : kindRoll < 52 ? 1 : kindRoll < 62 ? 2 : kindRoll < 74 ? 3 : kindRoll < 92 ? 4 : 5;
+            t.kind = kindRoll < 48 ? 0 : kindRoll < 54 ? 1 : kindRoll < 59 ? 2 : kindRoll < 71 ? 3 : kindRoll < 92 ? 4 : 5;
             const double hgt = (t.kind == 4 ? 20.0 : t.kind == 3 ? 11.0 : t.kind == 5 ? 17.0 : 12.0) * (0.75 + 0.5 * sizeRoll);
             t.trunkRadius = t.kind == 3 ? 0.15 : 0.22 + 0.1 * sizeRoll;
             switch (t.kind) {

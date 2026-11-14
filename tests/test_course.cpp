@@ -41,7 +41,7 @@ TEST_CASE("course: every feature has its surface") {
         for (const auto& p : h.pins) {
             const GroundSample g = c.terrain.sample(p.x, p.z);
             CHECK(g.surface == c.idGreen);
-            CHECK(g.normal.y > 0.9993);  // holes are cut where the green is gentle (< 4 %)
+            CHECK(g.normal.y > 0.99965);  // holes are cut where the green is gentle (< 3 %)
         }
         for (const auto& b : h.bunkers) CHECK(c.terrain.sample(b.lobes[0].x, b.lobes[0].z).surface == c.idBunker);
         for (const auto& l : h.lakes) CHECK(c.terrain.sample(l.lobes[0].x, l.lobes[0].z).surface == c.idWater);
